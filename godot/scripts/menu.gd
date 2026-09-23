@@ -40,9 +40,8 @@ func _on_host_pressed() -> void:
 		return
 	GameSession.solo_mode = false
 	GameSession.player_name = _solo_name()
-	info_label.text = "Комната создана! Порт %d.\nПередайте друзьям ваш Hamachi IP —\nони вводят его в поле «Подключиться».\nЗаходите в игру — друзья подключатся сами." % Net.PORT
-	# Хост сразу уходит в игру; клиенты подтянутся через join_request.
-	get_tree().change_scene_to_file("res://scenes/game.tscn")
+	# Хост создаёт комнату и уходит в ЛОББИ — там видны подключившиеся игроки.
+	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
 
 
 func _on_join_pressed() -> void:
@@ -56,8 +55,8 @@ func _on_join_pressed() -> void:
 		return
 	GameSession.solo_mode = false
 	GameSession.player_name = _solo_name()
-	info_label.text = "Подключение к %s…" % ip
-	get_tree().change_scene_to_file("res://scenes/game.tscn")
+	# Клиент попадает в ЛОББИ комнаты и ждёт, пока хост начнёт матч.
+	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
 
 
 func _on_conn_failed() -> void:

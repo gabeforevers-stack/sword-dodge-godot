@@ -3,3 +3,4 @@ extends Node
 
 var solo_mode := true
 var player_name := "Рыцарь"
+var in_lobby := false           # true = мы в лобби комнаты (ещё не в матче)

@@ -28,7 +28,10 @@ func _ready() -> void:
 	add_to_group("game_root")
 	mode = "solo" if GameSession.solo_mode else ("host" if Net.is_host else "client")
 
-	if mode == "client":
+		if mode == "client":
+		# Мы могли прийти в игру напрямую из лобби или пропустить его —
+		# реагируем на старт матча от хоста, снимая ожидание игроков.
+		Net.game_started_sig.connect(_on_net_game_started)
 		my_id = multiplayer.get_unique_id()
 		waiting_for_peers = true
 		multiplayer.peer_connected.connect(_on_client_peer)
@@ -120,6 +123,30 @@ func rpc_join_request(player_name: String) -> void:
 	if game.players.size() >= Const.MAX_PLAYERS:
 		return
 	game.add_player(sender, player_name)
+	waiting_for_peers = false
+
+
+# ---------- ЛОББИ-RPC (дублируем на сцене игры: Net шлёт их в current_scene) ----------
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_lobby_hello(_player_name: String) -> void:
+	pass
+
+
+@rpc("any_peer", "call_remote", "unreliable_ordered")
+func rpc_lobby_roster(roster: Array) -> void:
+	Net.lobby_roster_updated.emit(roster)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_lobby_start() -> void:
+	# Если клиент оказался на сцене игры раньше лобби — просто снимаем ожидание.
+	waiting_for_peers = false
+	Net.game_started_sig.emit()
+
+
+func _on_net_game_started() -> void:
+	# Хост нажал «НАЧАТЬ ИГРУ», пока мы были на сцене игры — просто снимаем ожидание.
 	waiting_for_peers = false
 
 

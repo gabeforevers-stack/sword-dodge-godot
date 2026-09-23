@@ -1,0 +1,125 @@
+[gd_scene load_steps=2 format=3 uid="uid://lobby0sworddodge"]
+
+[ext_resource type="Script" path="res://scripts/lobby.gd" id="1_lobby"]
+
+[node name="Lobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lobby")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0196078, 0.0235294, 0.0470588, 1)
+
+[node name="TitleBig" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 30.0
+offset_right = 240.0
+offset_bottom = 80.0
+grow_horizontal = 2
+text = "SWORD DODGE"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.25098, 1)
+theme_override_font_sizes/font_size = 40
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -220.0
+offset_right = 260.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLbl" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "◆ ЛОББИ КОМНАТЫ ◆"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.25098, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="IpLabel" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.439216, 0.815686, 1, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="Sep1" type="HSeparator" parent="Center/Panel/VBox"]
+layout_mode = 2
+
+[node name="RosterTitle" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "ИГРОКИ:"
+theme_override_colors/font_color = Color(0.65, 0.69, 0.78, 1)
+
+[node name="RosterScroll" type="ScrollContainer" parent="Center/Panel/VBox"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="RosterList" type="VBoxContainer" parent="Center/Panel/VBox/RosterScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="CountLabel" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.415686, 0.447059, 0.564706, 1)
+
+[node name="StatusLabel" type="Label" parent="Center/Panel/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.376471, 0.376471, 1)
+
+[node name="StartBtn" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "▶ НАЧАТЬ ИГРУ"
+theme_override_font_sizes/font_size = 16
+
+[node name="LeaveBtn" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "ВЫЙТИ ИЗ КОМНАТЫ"
+
+[node name="Hints" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Друзья подключаются по вашему Hamachi IP из главного меню · матч запускает хост"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.352941, 0.384314, 0.501961, 1)

@@ -8,6 +8,8 @@ signal player_disconnected(id: int)
 signal server_disconnected_got()
 signal chat_message(text: String)
 signal connection_failed_sig()
+signal lobby_roster_updated(roster: Array)   # [{id, name}] — список игроков лобби
+signal game_started_sig()                    # хост запустил матч
 
 const PORT := 7000
 const MAX_CLIENTS := 8
@@ -110,3 +112,33 @@ func send_join(player_name: String) -> void:
 	var s := _scene()
 	if s:
 		s.rpc_id(1, "rpc_join_request", player_name)
+
+
+# ---------- ЛОББИ (RPC объявлены на активной сцене: lobby.tscn или game.tscn) ----------
+
+func _active_scene_with(method: String) -> Node:
+	var s: Node = get_tree().current_scene
+	if s and s.has_method(method):
+		return s
+	return null
+
+
+func lobby_send_hello(player_name: String) -> void:
+	## Клиент в лобби представляется хосту.
+	var s := _active_scene_with("rpc_lobby_hello")
+	if s:
+		s.rpc_id(1, "rpc_lobby_hello", player_name)
+
+
+func lobby_send_roster(roster: Array) -> void:
+	## Хост рассылает список игроков лобби всем клиентам.
+	var s := _active_scene_with("rpc_lobby_roster")
+	if s:
+		s.rpc("rpc_lobby_roster", roster)
+
+
+func lobby_send_start() -> void:
+	## Хост запускает матч — все переходят в сцену игры.
+	var s := _active_scene_with("rpc_lobby_start")
+	if s:
+		s.rpc("rpc_lobby_start")
