@@ -84,7 +84,7 @@ func _on_peer_disconnected(id: int) -> void:
 # ---------- Отправка (RPC объявлены на активной сцене игры, группа "game_root") ----------
 
 func _scene() -> Node:
-	var root := get_tree().current_scene
+	var root: Node = get_tree().current_scene
 	if root and root.is_in_group("game_root"):
 		return root
 	return null

@@ -81,7 +81,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if can_spectate() and not spectating:
 				spectating = true
 	elif event is InputEventKey and event.pressed and not event.echo:
-		var kc := event.physical_keycode if event.physical_keycode != 0 else event.keycode
+		var kc: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
 		if kc == KEY_ESCAPE:
 			_return_to_menu()
 
@@ -114,7 +114,7 @@ func _return_to_menu() -> void:
 func rpc_join_request(player_name: String) -> void:
 	if mode != "host":
 		return
-	var sender := multiplayer.get_remote_sender_id()
+	var sender: int = multiplayer.get_remote_sender_id()
 	if game.players.has(sender):
 		return
 	if game.players.size() >= Const.MAX_PLAYERS:
@@ -127,7 +127,7 @@ func rpc_join_request(player_name: String) -> void:
 func rpc_client_input(up: int, down: int, left: int, right: int) -> void:
 	if mode != "host":
 		return
-	var sender := multiplayer.get_remote_sender_id()
+	var sender: int = multiplayer.get_remote_sender_id()
 	if game.players.has(sender):
 		game.players[sender].inp = {"up": up, "down": down, "left": left, "right": right}
 
@@ -158,7 +158,7 @@ func _check_hits(state: Dictionary) -> void:
 
 
 func _trigger_hit(is_local: bool) -> void:
-	var intensity := 1.0 if is_local else 0.5
+	var intensity: float = 1.0 if is_local else 0.5
 	if fx_timer <= 0.0 or intensity > fx_intensity:
 		fx_timer = Const.FX_DURATION
 		fx_intensity = intensity
@@ -176,7 +176,7 @@ func _process(dt: float) -> void:
 		if fx_timer == 0.0:
 			fx_intensity = 0.0
 
-	var inp := _read_input()
+	var inp: Dictionary = _read_input()
 
 	if mode == "client":
 		send_acc += dt
@@ -194,7 +194,7 @@ func _process(dt: float) -> void:
 		send_acc += dt
 		if mode == "host" and send_acc >= Const.SEND_INTERVAL:
 			send_acc = 0.0
-			var st := game.serialize()
+			var st: Dictionary = game.serialize()
 			last_state = st
 			_check_hits(st)
 			Net.send_state(st)
@@ -208,7 +208,7 @@ func _process(dt: float) -> void:
 # ---------- РЕНДЕР (всё рисуется в _draw, базовое разрешение 320x240) ----------
 
 func _draw() -> void:
-	var now_ms := Time.get_ticks_msec()
+	var now_ms: int = Time.get_ticks_msec()
 
 	# Очистка
 	draw_rect(Rect2(0, 0, Const.BASE_W, Const.BASE_H), Color("#05060c"))
@@ -287,8 +287,8 @@ func _pixel_line(from: Vector2, to: Vector2, color: Color, size: float) -> void:
 	var y1 := int(round(to.y))
 	var dx := absi(x1 - x0)
 	var dy := absi(y1 - y0)
-	var sx := 1 if x0 < x1 else -1
-	var sy := 1 if y0 < y1 else -1
+	var sx: int = 1 if x0 < x1 else -1
+	var sy: int = 1 if y0 < y1 else -1
 	var err := dx - dy
 	var half := int(size / 2.0)
 	for i in range(500):
@@ -382,7 +382,7 @@ func _draw_players(pl: Array, now_ms: int) -> void:
 		var start_x := int(round(p.x)) - 5
 		for k in Const.START_LIVES:
 			var filled := k < int(p.l)
-			var hc := Color("#e02020") if filled else Color("#3a2030")
+			var hc: Color = Color("#e02020") if filled else Color("#3a2030")
 			var hx := start_x + k * 4
 			for row in Sprites.HEART_SPRITE.size():
 				var line: String = Sprites.HEART_SPRITE[row]
@@ -391,8 +391,8 @@ func _draw_players(pl: Array, now_ms: int) -> void:
 						draw_rect(Rect2(hx + c2, hearts_y + row, 1, 1), hc)
 
 		# Имя
-		var font := ThemeDB.fallback_font
-		var name_col := Color("#d8dce8") if p.a == 1 else Color("#606878")
+		var font: Font = ThemeDB.fallback_font
+		var name_col: Color = Color("#d8dce8") if p.a == 1 else Color("#606878")
 		var sz := Vector2(font.get_string_size(str(p.n), HORIZONTAL_ALIGNMENT_CENTER, -1, FONT_SIZE_NAME))
 		draw_string(font, Vector2(int(round(p.x)) - sz.x / 2.0, int(round(p.y)) - 18 + oy),
 			str(p.n), HORIZONTAL_ALIGNMENT_CENTER, -1, FONT_SIZE_NAME, name_col)
@@ -403,7 +403,7 @@ func _draw_timer(state: Dictionary) -> void:
 		return
 	var total := int(floor(state.rt))
 	var txt := "%02d:%02d" % [int(total / 60.0), total % 60]
-	var font := ThemeDB.fallback_font
+	var font: Font = ThemeDB.fallback_font
 	var y := Const.KING_BOX_H + 19
 	draw_string(font, Vector2(Const.W / 2.0 - 30 + 1, y + 1), txt,
 		HORIZONTAL_ALIGNMENT_CENTER, 60, FONT_SIZE_TIMER, Color("#000000"))
@@ -440,7 +440,7 @@ func _update_banner() -> void:
 
 
 func _draw_banner() -> void:
-	var font := ThemeDB.fallback_font
+	var font: Font = ThemeDB.fallback_font
 	var lines := banner.split("\n")
 	var y := Const.BASE_H * 0.58
 	for i in lines.size():
@@ -452,7 +452,7 @@ func _draw_banner() -> void:
 
 
 func _draw_hud() -> void:
-	var font := ThemeDB.fallback_font
+	var font: Font = ThemeDB.fallback_font
 	draw_string(font, Vector2(18, 96 + 1), hud_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#000000"))
 	draw_string(font, Vector2(18, 96), hud_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#8890a0"))
 	draw_string(font, Vector2(18, Const.BASE_H - 8), "WASD/СТРЕЛКИ — движение · F — меню · S — наблюдать",
@@ -460,13 +460,13 @@ func _draw_hud() -> void:
 
 
 func _draw_death(now_ms: int) -> void:
-	var font := ThemeDB.fallback_font
+	var font: Font = ThemeDB.fallback_font
 	var pulse := 1.0 + 0.06 * sin(float(now_ms) / 800.0 * TAU * 0.5)
 	var sz := font.get_string_size("ПОРАЖЕНИЕ", HORIZONTAL_ALIGNMENT_CENTER, -1, 24)
 	var pos := Vector2(Const.W / 2.0 - sz.x * pulse / 2.0, Const.KING_BOX_H + Const.H * 0.5)
 	draw_string(font, pos, "ПОРАЖЕНИЕ", HORIZONTAL_ALIGNMENT_CENTER, -1,
 		int(24 * pulse), Color("#e02020"))
-	var hint := "F — В МЕНЮ   ·   S — НАБЛЮДАТЬ" if can_spectate() else "F — В МЕНЮ"
+	var hint: String = "F — В МЕНЮ   ·   S — НАБЛЮДАТЬ" if can_spectate() else "F — В МЕНЮ"
 	draw_string(font, Vector2(0, pos.y + 22), hint, HORIZONTAL_ALIGNMENT_CENTER, Const.W, 8,
 		Color("#e0e6f0"))
 
@@ -505,7 +505,7 @@ func _draw_king_box(now_ms: int) -> void:
 
 func _draw_torch(x: int, y: int, now_ms: int) -> void:
 	draw_rect(Rect2(x, y, 1, 5), Color("#3a2818"))
-	var flicker := 0 if sin(float(now_ms) / 90.0) > 0.0 else 1
+	var flicker: int = 0 if sin(float(now_ms) / 90.0) > 0.0 else 1
 	draw_rect(Rect2(x - 1, y - 3 - flicker, 3, 3 + flicker), Color("#ff8020"))
 	draw_rect(Rect2(x, y - 2 - flicker, 1, 1), Color("#ffd060"))
 	draw_rect(Rect2(x - 4, y - 7, 9, 9), Color(1.0, 0.55, 0.16, 0.08))
