@@ -1,0 +1,138 @@
+[gd_scene load_steps=2 format=3 uid="uid://menu0sworddodge"]
+
+[ext_resource type="Script" path="res://scripts/menu.gd" id="1_menu"]
+
+[node name="Menu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0196078, 0.0235294, 0.0470588, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 40.0
+offset_right = 240.0
+offset_bottom = 90.0
+grow_horizontal = 2
+text = "SWORD DODGE"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.25098, 1)
+theme_override_font_sizes/font_size = 40
+
+[node name="SubTitle" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 92.0
+offset_right = 240.0
+offset_bottom = 116.0
+grow_horizontal = 2
+text = "пиксельный · король · 3 жизни · онлайн через Hamachi"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.415686, 0.447059, 0.564706, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -140.0
+offset_right = 200.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Head" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "◆ МЕНЮ ◆"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.25098, 1)
+theme_override_font_sizes/font_size = 20
+
+[node name="NameRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="NameEdit" type="LineEdit" parent="Center/Panel/VBox/NameRow"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+placeholder_text = "ИМЯ РЫЦАРЯ"
+max_length = 10
+alignment = 1
+
+[node name="SoloBtn" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "ОДИНОЧНАЯ ИГРА"
+
+[node name="HostBtn" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "СОЗДАТЬ КОМНАТУ (ХОСТ)"
+
+[node name="IpRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="IpEdit" type="LineEdit" parent="Center/Panel/VBox/IpRow"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+placeholder_text = "IP ХОСТА (Hamachi)"
+
+[node name="JoinBtn" type="Button" parent="Center/Panel/VBox/IpRow"]
+layout_mode = 2
+text = "ПОДКЛЮЧИТЬСЯ"
+
+[node name="StatusLabel" type="Label" parent="Center/Panel/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.376471, 0.376471, 1)
+
+[node name="InfoLabel" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.439216, 0.815686, 1, 1)
+
+[node name="Hints" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "WASD / СТРЕЛКИ — движение   ·   F — в меню (после смерти)   ·   S — наблюдать
+Онлайн: у хоста и гостей должен быть один Hamachi-сет; порт 7000 открыт на хосте."
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.352941, 0.384314, 0.501961, 1)

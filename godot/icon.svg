@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#0a0c14"/>
+  <rect x="8" y="8" width="112" height="112" fill="#1a1e30"/>
+  <!-- меч -->
+  <g transform="rotate(45 64 64)">
+    <rect x="20" y="60" width="88" height="8" fill="#c0c8d8"/>
+    <rect x="20" y="62" width="88" height="4" fill="#ffffff"/>
+    <rect x="98" y="58" width="12" height="12" fill="#e04040"/>
+    <rect x="12" y="56" width="10" height="16" fill="#5a3818"/>
+    <rect x="14" y="62" width="4" height="4" fill="#f0c040"/>
+  </g>
+  <!-- король -->
+  <rect x="52" y="18" width="24" height="8" fill="#f0c040"/>
+  <rect x="56" y="26" width="16" height="10" fill="#e8b890"/>
+  <rect x="52" y="36" width="24" height="14" fill="#7a2870"/>
+</svg>
