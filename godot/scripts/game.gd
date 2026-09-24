@@ -29,7 +29,7 @@ func _ready() -> void:
 	add_to_group("game_root")
 	mode = "solo" if GameSession.solo_mode else ("host" if Net.is_host else "client")
 
-		if mode == "client":
+	if mode == "client":
 		# Мы могли прийти в игру напрямую из лобби или пропустить его —
 		# реагируем на старт матча от хоста, снимая ожидание игроков.
 		Net.game_started_sig.connect(_on_net_game_started)
