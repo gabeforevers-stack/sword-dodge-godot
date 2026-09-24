@@ -17,6 +17,7 @@ var spectating := false
 var fx_timer := 0.0
 var fx_intensity := 0.0
 var prev_lives := {}
+var dash_trails := {}           # id -> [{x, y, age}] — локальный визуальный след рывка
 var banner := ""
 var hud_text := ""
 var waiting_for_peers := false
@@ -73,6 +74,7 @@ func _read_input() -> Dictionary:
 		"down": 1 if Input.is_action_pressed("move_down") else 0,
 		"left": 1 if Input.is_action_pressed("move_left") else 0,
 		"right": 1 if Input.is_action_pressed("move_right") else 0,
+		"dash": 1 if Input.is_action_pressed(Const.DASH_KEY) else 0,
 	}
 
 
@@ -151,12 +153,12 @@ func _on_net_game_started() -> void:
 
 
 @rpc("any_peer", "call_remote", "unreliable_ordered")
-func rpc_client_input(up: int, down: int, left: int, right: int) -> void:
+func rpc_client_input(up: int, down: int, left: int, right: int, dash: int) -> void:
 	if mode != "host":
 		return
 	var sender: int = multiplayer.get_remote_sender_id()
 	if game.players.has(sender):
-		game.players[sender].inp = {"up": up, "down": down, "left": left, "right": right}
+		game.players[sender].inp = {"up": up, "down": down, "left": left, "right": right, "dash": dash}
 
 
 @rpc("any_peer", "call_remote", "unreliable_ordered")
@@ -209,7 +211,7 @@ func _process(dt: float) -> void:
 		send_acc += dt
 		if send_acc >= Const.SEND_INTERVAL:
 			send_acc = 0.0
-			Net.send_input(inp.up, inp.down, inp.left, inp.right)
+			Net.send_input(inp.up, inp.down, inp.left, inp.right, inp.dash)
 	else:
 		if game.players.has(my_id):
 			game.players[my_id].inp = inp
@@ -229,7 +231,31 @@ func _process(dt: float) -> void:
 			last_state = game.serialize()
 			_check_hits(last_state)
 
+	_update_dash_trails(dt)
 	queue_redraw()
+
+
+# ---------- СЛЕД РЫВКА (визуал) ----------
+
+func _update_dash_trails(dt: float) -> void:
+	# Для игроков с активным рывком добавляем точки следа; остальные затухают.
+	for p in last_state.get("pl", []):
+		var pid: int = p.i
+		if p.a == 1 and int(p.get("d", 0)) == 1:
+			if not dash_trails.has(pid):
+				dash_trails[pid] = []
+			dash_trails[pid].append({"x": p.x, "y": p.y})
+			if dash_trails[pid].size() > 10:
+				dash_trails[pid].pop_front()
+		elif dash_trails.has(pid):
+			# Рывок закончился — след быстро рассеивается
+			var arr: Array = dash_trails[pid]
+			if arr.is_empty():
+				dash_trails.erase(pid)
+			else:
+				arr.pop_front()
+				if arr.is_empty():
+					dash_trails.erase(pid)
 
 
 # ---------- РЕНДЕР (всё рисуется в _draw, базовое разрешение 320x240) ----------
@@ -251,6 +277,7 @@ func _draw() -> void:
 	_draw_arena()
 	if not last_state.is_empty():
 		_draw_sword(last_state.sw)
+		_draw_dash_trails()
 		_draw_players(last_state.pl, now_ms)
 		_draw_timer(last_state)
 
@@ -378,6 +405,21 @@ func _draw_sprite(tex_str: Array, palette: Dictionary, px: int, py: int, modulat
 			draw_rect(Rect2(px + col, py + row, 1, 1), c)
 
 
+func _draw_dash_trails() -> void:
+	var oy := Const.KING_BOX_H
+	for pid in dash_trails:
+		var arr: Array = dash_trails[pid]
+		var col: Color = Sprites.COLORS[int(pid) % Sprites.COLORS.size()]
+		for i in arr.size():
+			var t := float(i + 1) / float(arr.size())
+			var pt: Dictionary = arr[i]
+			var cx := int(round(pt.x))
+			var cy := int(round(pt.y)) + oy
+			# Затухающие пиксельные искры цвета игрока
+			draw_rect(Rect2(cx - 2, cy - 1, 4, 3), Color(col.r, col.g, col.b, 0.35 * t))
+			draw_rect(Rect2(cx - 1, cy - 3, 2, 6), Color(col.r, col.g, col.b, 0.25 * t))
+
+
 func _draw_players(pl: Array, now_ms: int) -> void:
 	var oy := Const.KING_BOX_H
 	for p in pl:
@@ -398,11 +440,27 @@ func _draw_players(pl: Array, now_ms: int) -> void:
 
 		_draw_sprite(Sprites.KNIGHT_SPRITE, pal, px, py, alpha)
 
-		# Индикатор «я»
+		# Индикатор «я» + статус рывка
 		if p.i == my_id and p.a == 1:
+			var dashing := int(p.get("d", 0)) == 1
+			var cd: float = float(p.get("c", 0.0))
+			var corner_col: Color
+			if dashing:
+				corner_col = Color("#70d0ff")
+			elif cd <= 0.0:
+				corner_col = Color("#40f080")   # рывок готов
+			else:
+				corner_col = Color("#ffffff")
 			for corner in [Vector2(px - 1, py - 1), Vector2(px + 10, py - 1),
 					Vector2(px - 1, py + 12), Vector2(px + 10, py + 12)]:
-				draw_rect(Rect2(corner, Vector2.ONE), Color("#ffffff"))
+				draw_rect(Rect2(corner, Vector2.ONE), corner_col)
+			# Текст под ногами: READY или секунды перезарядки
+			var dfont: Font = ThemeDB.fallback_font
+			var dtxt := "РЫВОК!" if dashing else ("READY" if cd <= 0.0 else "%ds" % ceili(cd))
+			var dcol := Color("#40f080") if (cd <= 0.0 or dashing) else Color("#8890a0")
+			var dsz := dfont.get_string_size(dtxt, HORIZONTAL_ALIGNMENT_CENTER, -1, 5)
+			draw_string(dfont, Vector2(int(round(p.x)) - dsz.x / 2.0, py + 18),
+				dtxt, HORIZONTAL_ALIGNMENT_CENTER, -1, 5, dcol)
 
 		# Сердечки жизней
 		var hearts_y := int(round(p.y)) - 15 + oy
@@ -482,7 +540,21 @@ func _draw_hud() -> void:
 	var font: Font = ThemeDB.fallback_font
 	draw_string(font, Vector2(18, 96 + 1), hud_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#000000"))
 	draw_string(font, Vector2(18, 96), hud_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("#8890a0"))
-	draw_string(font, Vector2(18, Const.BASE_H - 8), "WASD/СТРЕЛКИ — движение · F — меню · S — наблюдать",
+	var me_cd := 0.0
+	var me_dash := 0
+	for p in last_state.get("pl", []):
+		if p.i == my_id:
+			me_cd = float(p.get("c", 0.0))
+			me_dash = int(p.get("d", 0))
+	var dash_hud := ""
+	if me_dash == 1:
+		dash_hud = " · РЫВОК АКТИВЕН"
+	elif me_cd > 0.0:
+		dash_hud = " · РЫВОК: %ds" % ceili(me_cd)
+	else:
+		dash_hud = " · РЫВОК ГОТОВ"
+	hud_text += dash_hud
+	draw_string(font, Vector2(18, Const.BASE_H - 8), "WASD/СТРЕЛКИ — движение · SPACE — рывок · F — меню · S — наблюдать",
 		HORIZONTAL_ALIGNMENT_LEFT, -1, 6, Color("#5a6280"))
 
 

@@ -11,10 +11,15 @@ class PlayerData:
 	var color_idx: int = 0
 	var x: float = 0.0
 	var y: float = 0.0
-	var inp := {"up": 0, "down": 0, "left": 0, "right": 0}
+	var inp := {"up": 0, "down": 0, "left": 0, "right": 0, "dash": 0}
 	var alive: bool = true
 	var lives: int = Const.START_LIVES
 	var invuln: float = 0.0
+	# Рывок: временное ускорение с перезарядкой 60 сек
+	var dash_time: float = 0.0	# >0 = рывок активен (сек до конца)
+	var dash_cd: float = 0.0		# сек до восстановления (0 = рывок готов)
+	var dash_dx: float = 0.0		# направление рывка (единичный вектор)
+	var dash_dy: float = 0.0
 
 	func _init(p_id: int, p_name: String) -> void:
 		id = p_id
@@ -67,6 +72,8 @@ func reset_round() -> void:
 		p.alive = true
 		p.lives = Const.START_LIVES
 		p.invuln = 1.5
+		p.dash_time = 0.0
+		p.dash_cd = 0.0
 	var s := sword
 	s.x = Const.W / 2.0
 	s.y = Const.H / 2.0
@@ -92,6 +99,9 @@ func _update_playing(dt: float) -> void:
 	for p in players.values():
 		if p.invuln > 0.0:
 			p.invuln = maxf(0.0, p.invuln - dt)
+		# Перезарядка рывка тикает всегда (и во время самого рывка).
+		if p.dash_cd > 0.0:
+			p.dash_cd = maxf(0.0, p.dash_cd - dt)
 		if not p.alive:
 			continue
 		var dx: float = (1.0 if p.inp.right else 0.0) - (1.0 if p.inp.left else 0.0)
@@ -99,8 +109,28 @@ func _update_playing(dt: float) -> void:
 		if dx != 0.0 and dy != 0.0:
 			dx *= 0.7071
 			dy *= 0.7071
-		p.x += dx * Const.PLAYER_SPEED * dt
-		p.y += dy * Const.PLAYER_SPEED * dt
+		# Активация рывка: кнопка нажата, рывок готов, игрок жив.
+		if int(p.inp.get("dash", 0)) == 1 and p.dash_cd <= 0.0 and p.dash_time <= 0.0:
+			if dx != 0.0 or dy != 0.0:
+				p.dash_dx = dx
+				p.dash_dy = dy
+			else:
+				# Без направления — рывок в сторону ближайшего края от меча
+				var away := Vector2(p.x - sword.x, p.y - sword.y)
+				if away.length_squared() < 0.01:
+					away = Vector2(0, -1)
+				p.dash_dx = away.normalized().x
+				p.dash_dy = away.normalized().y
+			p.dash_time = Const.DASH_DURATION
+			p.dash_cd = Const.DASH_COOLDOWN
+		var speed := Const.PLAYER_SPEED
+		if p.dash_time > 0.0:
+			p.dash_time = maxf(0.0, p.dash_time - dt)
+			speed *= Const.DASH_SPEED_MULT
+			dx = p.dash_dx
+			dy = p.dash_dy
+		p.x += dx * speed * dt
+		p.y += dy * speed * dt
 		p.x = clampf(p.x, Const.PLAYER_R, Const.W - Const.PLAYER_R)
 		p.y = clampf(p.y, Const.PLAYER_R, Const.H - Const.PLAYER_R)
 
@@ -187,6 +217,8 @@ func serialize() -> Dictionary:
 			"a": 1 if p.alive else 0,
 			"v": 1 if p.invuln > 0.0 else 0,
 			"l": p.lives,
+			"d": 1 if p.dash_time > 0.0 else 0,
+			"c": roundi(p.dash_cd * 10.0) / 10.0,
 		})
 	var tr_arr := []
 	for t in sword.trail:

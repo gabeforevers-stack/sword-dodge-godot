@@ -23,3 +23,9 @@ const SEND_INTERVAL := 1.0 / 30.0
 const FX_DURATION := 1.9
 const START_LIVES := 3
 const HIT_INVULN := 2.0
+
+# Рывок (Space) — временное ускорение, восстановление 60 сек
+const DASH_KEY := "dash"
+const DASH_DURATION := 0.3          # длительность рывка, сек
+const DASH_SPEED_MULT := 2.8        # множитель скорости во время рывка
+const DASH_COOLDOWN := 60.0         # перезарядка рывка, сек

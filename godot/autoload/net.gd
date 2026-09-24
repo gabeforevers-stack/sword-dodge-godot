@@ -92,12 +92,12 @@ func _scene() -> Node:
 	return null
 
 
-func send_input(up: int, down: int, left: int, right: int) -> void:
+func send_input(up: int, down: int, left: int, right: int, dash: int = 0) -> void:
 	if is_host:
 		return
 	var s := _scene()
 	if s:
-		s.rpc_id(1, "rpc_client_input", up, down, left, right)
+		s.rpc_id(1, "rpc_client_input", up, down, left, right, dash)
 
 
 func send_state(state: Dictionary) -> void:
