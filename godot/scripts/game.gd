@@ -27,6 +27,10 @@ var net_lost := false
 func _ready() -> void:
 	scale = Vector2(Const.SCALE, Const.SCALE)   # апскейл 3x с резкими пикселями
 	add_to_group("game_root")
+	# Вспомогательные узлы видны только в редакторе (зоны/якоря сцены)
+	for child in get_children():
+		if child.get_meta("editor_only", false):
+			child.visible = false
 	mode = "solo" if GameSession.solo_mode else ("host" if Net.is_host else "client")
 
 	if mode == "client":
