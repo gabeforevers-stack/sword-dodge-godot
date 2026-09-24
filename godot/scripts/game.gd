@@ -309,15 +309,33 @@ func _draw() -> void:
 
 func _draw_arena() -> void:
 	var oy := Const.KING_BOX_H
+	# Фон арены целиком своей картинкой (320x212 или 320x240)
+	var bg: Texture2D = Sprites.tex("bg_arena")
+	if bg != null:
+		draw_texture(bg, Vector2(0, oy))
+		return
 	# Заливка арены
 	draw_rect(Rect2(0, oy, Const.BASE_W, Const.H), Color("#1a1e30"))
 	# Плитка пола (шахматный узор)
-	for ty in range(0, Const.H, TILE):
-		for tx in range(0, Const.W, TILE):
-			var cx := int(tx / TILE)
-			var cy := int(ty / TILE)
-			if (cx + cy) % 2 == 0:
-				draw_rect(Rect2(tx, oy + ty, TILE, TILE), Color("#1c2038"))
+	var ftile: Texture2D = Sprites.tex("floor")
+	if ftile != null:
+		# Свой тайл пола — замощаем им всю арену
+		var tw: float = ftile.get_width()
+		var th: float = ftile.get_height()
+		var yy := 0.0
+		while yy < Const.H:
+			var xx := 0.0
+			while xx < Const.W:
+				draw_texture(ftile, Vector2(xx, oy + yy))
+				xx += tw
+			yy += th
+	else:
+		for ty in range(0, Const.H, TILE):
+			for tx in range(0, Const.W, TILE):
+				var cx := int(tx / TILE)
+				var cy := int(ty / TILE)
+				if (cx + cy) % 2 == 0:
+					draw_rect(Rect2(tx, oy + ty, TILE, TILE), Color("#1c2038"))
 	# Тонкая сетка
 	var grid := Color(0.235, 0.275, 0.392, 0.25)
 	for x in range(0, Const.W + 1, TILE):
@@ -369,6 +387,15 @@ func _draw_sword(s: Dictionary) -> void:
 	var oy := Const.KING_BOX_H
 	var ang: float = s.get("an", 0.0)
 	var center := Vector2(s.x, s.y + oy)
+
+	# Если есть свой sword.png — рисуем его (вращается вокруг центра картинки)
+	var stex: Texture2D = Sprites.tex("sword")
+	if stex != null:
+		draw_set_transform(center, ang, Vector2.ONE)
+		var sz := stex.get_size()
+		draw_texture(stex, -sz / 2.0)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 
 	# След
 	var trail: Array = s.get("tr", [])
@@ -442,7 +469,16 @@ func _draw_players(pl: Array, now_ms: int) -> void:
 		if p.a == 1:
 			draw_rect(Rect2(px + 1, py + 12, 8, 2), Color(0, 0, 0, 0.45))
 
-		_draw_sprite(Sprites.KNIGHT_SPRITE, pal, px, py, alpha)
+		var ktex: Texture2D = Sprites.tex("knight")
+		if ktex != null:
+			# Своя картинка рыцаря. colorize: если картинка белая — окрасится цветом игрока
+			var kmod := col
+			kmod.a = alpha
+			if p.a == 0:
+				kmod = Color(0.45, 0.45, 0.48, alpha)
+			draw_texture(ktex, Vector2(px, py), kmod)
+		else:
+			_draw_sprite(Sprites.KNIGHT_SPRITE, pal, px, py, alpha)
 
 		# Индикатор «я» + статус рывка
 		if p.i == my_id and p.a == 1:
@@ -473,11 +509,15 @@ func _draw_players(pl: Array, now_ms: int) -> void:
 			var filled := k < int(p.l)
 			var hc: Color = Color("#e02020") if filled else Color("#3a2030")
 			var hx := start_x + k * 4
-			for row in Sprites.HEART_SPRITE.size():
-				var line: String = Sprites.HEART_SPRITE[row]
-				for c2 in line.length():
-					if line[c2] == "H":
-						draw_rect(Rect2(hx + c2, hearts_y + row, 1, 1), hc)
+			var htex: Texture2D = Sprites.tex("heart")
+			if htex != null:
+				draw_texture(htex, Vector2(hx, hearts_y), hc)
+			else:
+				for row in Sprites.HEART_SPRITE.size():
+					var line: String = Sprites.HEART_SPRITE[row]
+					for c2 in line.length():
+						if line[c2] == "H":
+							draw_rect(Rect2(hx + c2, hearts_y + row, 1, 1), hc)
 
 		# Имя
 		var font: Font = ThemeDB.fallback_font
@@ -603,10 +643,22 @@ func _draw_king_box(now_ms: int) -> void:
 	draw_rect(Rect2(0, Const.KING_BOX_H - 3, Const.BASE_W, 1), Color("#4a3a58"))
 
 	_draw_throne(Const.W / 2.0, Const.KING_BOX_H - 4)
-	_draw_sprite(Sprites.KING_SPRITE, Sprites.KING_PALETTE, int(Const.W / 2.0) - 7, 5, 1.0)
+	var kgtex: Texture2D = Sprites.tex("king")
+	if kgtex != null:
+		draw_texture(kgtex, Vector2(int(Const.W / 2.0) - kgtex.get_width() / 2.0,
+			Const.KING_BOX_H - 4 - kgtex.get_height()))
+	else:
+		_draw_sprite(Sprites.KING_SPRITE, Sprites.KING_PALETTE, int(Const.W / 2.0) - 7, 5, 1.0)
 
 
 func _draw_torch(x: int, y: int, now_ms: int) -> void:
+	var ttex: Texture2D = Sprites.tex("torch")
+	if ttex != null:
+		# Мерцание лёгким затемнением
+		var fl := 0.85 if (now_ms / 120) % 2 == 0 else 1.0
+		draw_texture(ttex, Vector2(x - ttex.get_width() / 2.0, y - ttex.get_height()),
+			Color(fl, fl, fl, 1.0))
+		return
 	draw_rect(Rect2(x, y, 1, 5), Color("#3a2818"))
 	var flicker: int = 0 if sin(float(now_ms) / 90.0) > 0.0 else 1
 	draw_rect(Rect2(x - 1, y - 3 - flicker, 3, 3 + flicker), Color("#ff8020"))
@@ -615,6 +667,10 @@ func _draw_torch(x: int, y: int, now_ms: int) -> void:
 
 
 func _draw_pillar(x: int) -> void:
+	var ptex: Texture2D = Sprites.tex("pillar")
+	if ptex != null:
+		draw_texture(ptex, Vector2(x - ptex.get_width() / 2.0, 3))
+		return
 	var bottom_y := Const.KING_BOX_H - 3
 	draw_rect(Rect2(x - 2, 3, 5, bottom_y - 3), Color("#2a1f40"))
 	draw_rect(Rect2(x - 2, 3, 1, bottom_y - 3), Color("#4a3860"))
@@ -624,6 +680,10 @@ func _draw_pillar(x: int) -> void:
 
 
 func _draw_throne(cx: float, base_y: int) -> void:
+	var ttex: Texture2D = Sprites.tex("throne")
+	if ttex != null:
+		draw_texture(ttex, Vector2(cx - ttex.get_width() / 2.0, base_y - ttex.get_height()))
+		return
 	draw_rect(Rect2(cx - 11, base_y - 22, 23, 22), Color("#3a1020"))
 	draw_rect(Rect2(cx - 11, base_y - 22, 23, 1), Color("#f0c040"))
 	draw_rect(Rect2(cx - 11, base_y - 22, 1, 22), Color("#f0c040"))
