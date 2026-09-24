@@ -235,13 +235,13 @@ func _process(dt: float) -> void:
 			last_state = game.serialize()
 			_check_hits(last_state)
 
-	_update_dash_trails(dt)
+	_update_dash_trails()
 	queue_redraw()
 
 
 # ---------- СЛЕД РЫВКА (визуал) ----------
 
-func _update_dash_trails(dt: float) -> void:
+func _update_dash_trails() -> void:
 	# Для игроков с активным рывком добавляем точки следа; остальные затухают.
 	for p in last_state.get("pl", []):
 		var pid: int = p.i
@@ -454,7 +454,7 @@ func _draw_dash_trails() -> void:
 func _draw_players(pl: Array, now_ms: int) -> void:
 	var oy := Const.KING_BOX_H
 	for p in pl:
-		var col: Color = Sprites.COLORS[int(p.c) % Sprites.COLORS.size()]
+		var col: Color = Sprites.COLORS[int(p.ci) % Sprites.COLORS.size()]
 		var pal := Sprites.knight_palette(col)
 		var px := int(round(p.x)) - 5
 		var py := int(round(p.y)) - 8 + oy
@@ -483,7 +483,7 @@ func _draw_players(pl: Array, now_ms: int) -> void:
 		# Индикатор «я» + статус рывка
 		if p.i == my_id and p.a == 1:
 			var dashing := int(p.get("d", 0)) == 1
-			var cd: float = float(p.get("c", 0.0))
+			var cd: float = float(p.get("dc", 0.0))
 			var corner_col: Color
 			if dashing:
 				corner_col = Color("#70d0ff")
@@ -588,7 +588,7 @@ func _draw_hud() -> void:
 	var me_dash := 0
 	for p in last_state.get("pl", []):
 		if p.i == my_id:
-			me_cd = float(p.get("c", 0.0))
+			me_cd = float(p.get("dc", 0.0))
 			me_dash = int(p.get("d", 0))
 	var dash_hud := ""
 	if me_dash == 1:
@@ -619,7 +619,7 @@ func _draw_death(now_ms: int) -> void:
 func _draw_king_box(now_ms: int) -> void:
 	# Фон зала — вертикальный градиент
 	for y in Const.KING_BOX_H:
-		var t := float(y) / Const.KING_BOX_H
+		var t := float(y) / float(Const.KING_BOX_H)
 		draw_rect(Rect2(0, y, Const.BASE_W, 1),
 			Color8(clampi(int(26 + 4 * t), 0, 255), clampi(int(18 + 2 * t), 0, 255),
 				clampi(int(48 - 16 * t), 0, 255), 255))

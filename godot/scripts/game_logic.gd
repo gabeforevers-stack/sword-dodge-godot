@@ -173,8 +173,8 @@ func _update_playing(dt: float) -> void:
 	for p in players.values():
 		if not p.alive or p.invuln > 0.0:
 			continue
-		var ddx := p.x - s.x
-		var ddy := p.y - s.y
+		var ddx: float = p.x - s.x
+		var ddy: float = p.y - s.y
 		if ddx * ddx + ddy * ddy < hit_r2:
 			p.lives -= 1
 			if p.lives <= 0:
@@ -211,14 +211,14 @@ func serialize() -> Dictionary:
 	var pl_arr := []
 	for p in players.values():
 		pl_arr.append({
-			"i": p.id, "n": p.name, "c": p.color_idx,
+			"i": p.id, "n": p.name, "ci": p.color_idx,
 			"x": roundi(p.x * 10.0) / 10.0,
 			"y": roundi(p.y * 10.0) / 10.0,
 			"a": 1 if p.alive else 0,
 			"v": 1 if p.invuln > 0.0 else 0,
 			"l": p.lives,
 			"d": 1 if p.dash_time > 0.0 else 0,
-			"c": roundi(p.dash_cd * 10.0) / 10.0,
+			"dc": roundi(p.dash_cd * 10.0) / 10.0,
 		})
 	var tr_arr := []
 	for t in sword.trail:
